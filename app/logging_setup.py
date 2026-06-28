@@ -3,7 +3,7 @@ import os
 
 from pythonjsonlogger import jsonlogger
 
-from .config import settings
+from config import settings
 
 
 def setup_logging():

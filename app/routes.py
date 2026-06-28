@@ -1,19 +1,18 @@
-import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from starlette.responses import Response
 
-from .db import get_db
-from .models import User  # <-- Убрали импорт AuditEvent
-from .security import (
+from db import get_db
+from models import User
+from security import (
     hash_password, verify_password,
     make_access_token, make_refresh_token, decode_token,
 )
-from .logging_setup import app_logger, log_audit
-from .metrics import login_attempts_total
-from .config import settings
+from logging_setup import app_logger, log_audit
+from metrics import login_attempts_total
+from config import settings
 
 router = APIRouter()
 
@@ -29,10 +28,8 @@ def _client_ctx(request: Request):
     ua = request.headers.get("user-agent")
     return ip, ua
 
-# <-- ИЗМЕНЕННАЯ ФУНКЦИЯ -->
-# Теперь она НЕ принимает db и НЕ пишет в базу. 
-# Она просто формирует лог, который заберет Vector.
 def _record_audit(event_type: str, username, ip, ua, success: bool):
+    # Пишем только в файл/stdout, чтобы Vector забрал. В БД не пишем.
     log_audit(event_type, username, ip, ua, success)
 
 @router.get("/healthz")
@@ -62,18 +59,12 @@ def login(creds: Credentials, request: Request, db: Session = Depends(get_db)):
     
     if not user or not verify_password(creds.password, user.password_hash):
         login_attempts_total.labels(result="failed").inc()
-        
-        # <-- ИЗМЕНЕНО: убрали передачу db
         _record_audit("login_failed", creds.username, ip, ua, success=False)
-        
         app_logger.warning("login_failed", extra={"username": creds.username, "ip": ip, "instance": settings.instance_id})
         raise HTTPException(status_code=401, detail="invalid credentials")
 
     login_attempts_total.labels(result="success").inc()
-    
-    # <-- ИЗМЕНЕНО: убрали передачу db
     _record_audit("login_success", creds.username, ip, ua, success=True)
-    
     app_logger.info("login_success", extra={"username": creds.username, "ip": ip, "instance": settings.instance_id})
     
     return {

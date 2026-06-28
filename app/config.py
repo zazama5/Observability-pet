@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     refresh_token_ttl_seconds: int = 604800   # 7 дней
 
     # путь для audit-лога (его подхватывает Vector-agent)
-    audit_log_path: str = "/var/log/auth/audit.log"
+    audit_log_path: str = "./logs/audit.log"
 
     # имя пода/инстанса — пишется в app-логи, чтобы видеть балансировку nginx
     instance_id: str = "local"
