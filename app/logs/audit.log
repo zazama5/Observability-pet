@@ -1,0 +1,1 @@
+{"asctime": "2026-06-28 02:33:56,596", "levelname": "INFO", "name": "audit", "message": "audit_event", "taskName": null, "event_type": "login_success", "username": "testuser", "ip": "127.0.0.1", "user_agent": "curl/8.5.0", "success": true}
