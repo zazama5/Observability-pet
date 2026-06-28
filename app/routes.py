@@ -29,7 +29,6 @@ def _client_ctx(request: Request):
     return ip, ua
 
 def _record_audit(event_type: str, username, ip, ua, success: bool):
-    # Пишем только в файл/stdout, чтобы Vector забрал. В БД не пишем.
     log_audit(event_type, username, ip, ua, success)
 
 @router.get("/healthz")

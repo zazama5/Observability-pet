@@ -4,7 +4,6 @@ from db import Base, engine
 from routes import router
 from metrics import http_requests_total, http_request_duration
 
-# создаём таблицы при старте (для учебного проекта; в проде — Alembic-миграции)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="auth-service")

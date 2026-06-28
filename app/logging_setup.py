@@ -18,14 +18,14 @@ def setup_logging():
         "%(asctime)s %(levelname)s %(name)s %(message)s"
     )
 
-    # app-логгер -> stdout
+    
     app_logger = logging.getLogger("app")
     app_logger.setLevel(logging.INFO)
     stream = logging.StreamHandler()
     stream.setFormatter(fmt)
     app_logger.addHandler(stream)
 
-    # audit-логгер -> файл
+    
     os.makedirs(os.path.dirname(settings.audit_log_path), exist_ok=True)
     audit_logger = logging.getLogger("audit")
     audit_logger.setLevel(logging.INFO)

@@ -1,7 +1,5 @@
 from prometheus_client import Counter, Histogram
 
-# Метрики, которые Prometheus снимает с /metrics.
-# ServiceMonitor (kube-prometheus-stack) скрейпит этот эндпоинт.
 
 http_requests_total = Counter(
     "auth_http_requests_total",
@@ -18,5 +16,5 @@ http_request_duration = Histogram(
 login_attempts_total = Counter(
     "auth_login_attempts_total",
     "Login attempts",
-    ["result"],  # success | failed
+    ["result"],  
 )
