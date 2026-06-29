@@ -49,5 +49,7 @@ def log_audit(event_type: str, username: str | None, ip: str | None,
             "ip": ip,
             "user_agent": user_agent,
             "success": success,
+            "instance_id": settings.instance_id,
+            "service": "auth-service",
         },
     )
