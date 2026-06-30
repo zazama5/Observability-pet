@@ -1,37 +1,57 @@
 import logging
-import os
-
-from pythonjsonlogger import jsonlogger
-
+import json
+import socket
+from datetime import datetime, timezone
 from config import settings
 
 
-def setup_logging():
-    """
-    Два логгера:
-      - 'app'   -> stdout (JSON). Подхватывает Vector-agent (DaemonSet),
-                   шумный поток HTTP/latency/ошибок -> Kafka topic app-logs -> Elasticsearch.
-      - 'audit' -> файл audit.log (JSON). Security-события.
-                   Vector читает файл -> Kafka topic audit-logs -> PostgreSQL.
-    """
-    fmt = jsonlogger.JsonFormatter(
-        "%(asctime)s %(levelname)s %(name)s %(message)s"
-    )
+class JSONFormatter(logging.Formatter):
+    """JSON-форматтер для stdout с полем log_stream для маршрутизации."""
 
-    
+    def __init__(self, log_stream: str):
+        super().__init__()
+        self.log_stream = log_stream
+        self.instance_id = settings.instance_id or socket.gethostname() or "local-dev"
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "log_stream": self.log_stream,
+            "message": record.getMessage(),
+            "instance_id": self.instance_id,
+            "service": "auth-service",
+        }
+
+        for key in ("username", "ip", "user_agent", "success",
+                     "event_type", "method", "path", "status_code",
+                     "duration_ms", "status"):
+            if hasattr(record, key):
+                log_entry[key] = getattr(record, key)
+
+        if record.exc_info and record.exc_info[0]:
+            log_entry["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(log_entry, ensure_ascii=False)
+
+
+def setup_logging():
     app_logger = logging.getLogger("app")
     app_logger.setLevel(logging.INFO)
-    stream = logging.StreamHandler()
-    stream.setFormatter(fmt)
-    app_logger.addHandler(stream)
+    app_logger.propagate = False
 
-    
-    os.makedirs(os.path.dirname(settings.audit_log_path), exist_ok=True)
+    app_handler = logging.StreamHandler()
+    app_handler.setFormatter(JSONFormatter(log_stream="app"))
+    app_logger.addHandler(app_handler)
+
     audit_logger = logging.getLogger("audit")
     audit_logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler(settings.audit_log_path)
-    file_handler.setFormatter(fmt)
-    audit_logger.addHandler(file_handler)
+    audit_logger.propagate = False
+
+    audit_handler = logging.StreamHandler()
+    audit_handler.setFormatter(JSONFormatter(log_stream="audit"))
+    audit_logger.addHandler(audit_handler)
 
     return app_logger, audit_logger
 
@@ -39,8 +59,7 @@ def setup_logging():
 app_logger, audit_logger = setup_logging()
 
 
-def log_audit(event_type: str, username: str | None, ip: str | None,
-              user_agent: str | None, success: bool):
+def log_audit(event_type: str, username: str, ip: str, user_agent: str, success: bool):
     audit_logger.info(
         "audit_event",
         extra={
@@ -49,7 +68,5 @@ def log_audit(event_type: str, username: str | None, ip: str | None,
             "ip": ip,
             "user_agent": user_agent,
             "success": success,
-            "instance_id": settings.instance_id,
-            "service": "auth-service",
-        },
+        }
     )
