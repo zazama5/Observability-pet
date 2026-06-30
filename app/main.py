@@ -1,23 +1,32 @@
-import time
-from fastapi import FastAPI, Request
-from db import Base, engine
+from fastapi import FastAPI
+from config import settings
 from routes import router
-from metrics import http_requests_total, http_request_duration
+from db import Base, engine
+from logging_setup import app_logger  # ← только импорт, без setup_logging()
+from metrics import metrics_middleware
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="auth-service")
+app = FastAPI(title="Auth Service")
 
-@app.middleware("http")
-async def metrics_middleware(request: Request, call_next):
-    start = time.time()
-    response = await call_next(request)
-    duration = time.time() - start
-    path = request.url.path
-    http_requests_total.labels(
-        method=request.method, path=path, status=response.status_code
-    ).inc()
-    http_request_duration.labels(method=request.method, path=path).observe(duration)
-    return response
+# setup_logging() уже вызван при импорте logging_setup
+# app_logger уже инициализирован
 
 app.include_router(router)
+app.middleware("http")(metrics_middleware)
+
+
+@app.on_event("startup")
+async def startup_event():
+    app_logger.info(
+        "startup",
+        extra={"service": "auth-service", "instance": settings.instance_id}
+    )
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    app_logger.info(
+        "shutdown",
+        extra={"service": "auth-service", "instance": settings.instance_id}
+    )

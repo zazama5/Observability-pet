@@ -12,9 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 
-RUN mkdir -p /var/log/auth && chown -R appuser:appuser /var/log/auth
-
-
 USER appuser
 
 EXPOSE 8000
