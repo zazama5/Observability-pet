@@ -2,15 +2,13 @@ from fastapi import FastAPI
 from config import settings
 from routes import router
 from db import Base, engine
-from logging_setup import app_logger  # ← только импорт, без setup_logging()
+from logging_setup import app_logger  
 from metrics import metrics_middleware
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Auth Service")
 
-# setup_logging() уже вызван при импорте logging_setup
-# app_logger уже инициализирован
 
 app.include_router(router)
 app.middleware("http")(metrics_middleware)
