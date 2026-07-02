@@ -118,17 +118,9 @@ def refresh_token(current_user: str = Depends(get_current_user), request: Reques
 
 @router.get("/healthz")
 def healthz():
-    app_logger.info(
-        "health_check",
-        extra={"status": "healthy", "instance": settings.instance_id}
-    )
     return {"status": "healthy"}
 
 
 @router.get("/metrics")
 def metrics():
-    app_logger.info(
-        "metrics_request",
-        extra={"instance": settings.instance_id}
-    )
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

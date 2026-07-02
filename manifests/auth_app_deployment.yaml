@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-v1-service
+  namespace: auth
+  labels:
+    app: auth-v1-service
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: auth-v1-service
+
+  template:
+    metadata:
+      labels:
+        app: auth-v1-service
+
+    spec:
+      containers:
+      - name: auth-v1-service
+        image: zazama1/logapp:v3
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+
+        envFrom:
+        - secretRef:
+            name: auth-v1-secrets
+        - configMapRef:
+            name: auth-v1-config
+
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 60
