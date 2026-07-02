@@ -2,4 +2,7 @@ venv/
 .venv/
 .env
 __pycache__/
+manifests/**/*.yaml
+manifests/*_secret.yaml
+*_secret.yaml
 
