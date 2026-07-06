@@ -4,10 +4,14 @@ metadata:
   name: auth-ingress
   namespace: auth
   annotations:
-    # Специфичные для Nginx аннотации (например, rate-limit)
     nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "5"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_500 http_502"
+    nginx.ingress.kubernetes.io/load-balance: "least_conn"
 spec:
-  # КРИТИЧЕСКИ ВАЖНО: Указываем, что этот Ingress должен обслуживать Nginx
   ingressClassName: nginx 
   rules:
   - host: auth.local
