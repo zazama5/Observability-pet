@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 900
     refresh_token_ttl_seconds: int = 604800
-    instance_id: str = "local"
+    instance_id: str = ""
 
     class Config:
         env_file = ".env"

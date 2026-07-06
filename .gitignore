@@ -6,4 +6,3 @@ manifests/**/*.yaml
 manifests/*_secret.yaml
 *_secret.yaml
 
-

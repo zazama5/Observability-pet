@@ -4,7 +4,7 @@ metadata:
   name: auth-v1-service
   namespace: auth
   labels:
-    app: auth-v1-service
+    app: auth-v1  
 spec:
   type: ClusterIP
   ports:
@@ -12,4 +12,4 @@ spec:
     targetPort: 8000
     protocol: TCP
   selector:
-    app: auth-service
+    app: auth-v1  

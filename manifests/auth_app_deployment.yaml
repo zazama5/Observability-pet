@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-v1-service
+  name: auth-v1-deployment
   namespace: auth
   labels:
-    app: auth-v1-service
+    app: auth-v1 
 
 spec:
   replicas: 3
 
   selector:
     matchLabels:
-      app: auth-v1-service
+      app: auth-v1  
 
   template:
     metadata:
       labels:
-        app: auth-v1-service
+        app: auth-v1  
 
     spec:
       containers:
-      - name: auth-v1-service
-        image: zazama1/logapp:v3
-        imagePullPolicy: IfNotPresent
+      - name: auth-v1-deployment
+        image: zazama1/logapp:v4
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
 
@@ -43,8 +43,9 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 8000
-          initialDelaySeconds: 10
+          initialDelaySeconds: 15
           periodSeconds: 30
+          failureThreshold: 3
 
         readinessProbe:
           httpGet:
@@ -52,3 +53,5 @@ spec:
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 60
+          timeoutSeconds: 3
+          failureThreshold: 3
