@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auth-ingress
+  namespace: auth
+  annotations:
+    # Специфичные для Nginx аннотации (например, rate-limit)
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+spec:
+  # КРИТИЧЕСКИ ВАЖНО: Указываем, что этот Ingress должен обслуживать Nginx
+  ingressClassName: nginx 
+  rules:
+  - host: auth.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-v1-service
+            port:
+              number: 8000
