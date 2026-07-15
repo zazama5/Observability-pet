@@ -1,0 +1,71 @@
+app:
+  replicas: 3
+
+  image:
+    repository: zazama1/logapp
+    tag: "v4"
+    pullPolicy: Always
+
+  containerPort: 8000
+  podAnnotations: {}
+  podLabels: {}
+
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+  livenessProbe:
+    tcpSocket:
+      port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 60
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  envFrom:
+    secretName: ""
+  configMapName: ""
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  protocol: TCP
+
+ingress:
+  enabled: true
+  className: "nginx"
+  host: auth.local
+  path: / 
+  pathType: Prefix
+  annotations:
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/limit-connections: "5"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "10"
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "error timeout http_500 http_502"
+    nginx.ingress.kubernetes.io/lb-method: "least_conn"
+
+configmap:
+  JWT_ALGORITHM: "HS256"
+  ACCESS_TOKEN_TTL_SECONDS: "900"
+  REFRESH_TOKEN_TTL_SECONDS: "604800"
+
+secret:
+  type: Opaque
+  DATABASE_URL: "postgresql+psycopg2://auth:auth@auth-postgres.postgres.svc.cluster.local:5432/auth"
+  JWT_SECRET: "M/AzYyBJrECM2uf4NgLUXXUL8N7apk5p25vvQJEYhzpJyI/d0lhQdKSJ5jUA3yaG"
+ 

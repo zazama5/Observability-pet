@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "auth-service.fullname" . }}-deployment
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "auth-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      {{- include "auth-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.app.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "auth-service.selectorLabels" . | nindent 8 }}
+        {{- with .Values.app.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.app.image.repository }}:{{ .Values.app.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.containerPort }}
+      
+          envFrom:
+            - secretRef:
+                name: {{ default (printf "%s-secret" (include "auth-service.fullname" .)) .Values.app.envFrom.secretName }}
+            - configMapRef:
+                name: {{ default (printf "%s-config" (include "auth-service.fullname" .)) .Values.app.envFrom.configMapName }}
+
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+
+          livenessProbe:
+            {{- toYaml .Values.app.livenessProbe | nindent 12 }}
+
+          readinessProbe:
+            {{- toYaml .Values.app.readinessProbe | nindent 12 }}

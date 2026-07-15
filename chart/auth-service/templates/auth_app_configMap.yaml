@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{include "auth-service.fullname" .}}-config
+  namespace: {{ .Release.Namespace}}
+  labels:
+    {{- include "auth-service.labels" . | nindent 4}}
+data:
+  JWT_ALGORITHM: {{ .Values.configmap.JWT_ALGORITHM | quote }}
+  ACCESS_TOKEN_TTL_SECONDS: {{ .Values.configmap.ACCESS_TOKEN_TTL_SECONDS | quote }}
+  REFRESH_TOKEN_TTL_SECONDS: {{ .Values.configmap.REFRESH_TOKEN_TTL_SECONDS | quote }}
